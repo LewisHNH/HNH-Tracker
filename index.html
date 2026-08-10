@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>Hooves &amp; Hounds — The Tracker</title>
+<meta name="description" content="Log your bets and see your real P&amp;L, ROI and strike rate. Free, no signup.">
+
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+
+<!-- iOS ignores most of the manifest and needs its own tags -->
+<link rel="apple-touch-icon" href="/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="H&amp;H Tracker">
+<link rel="icon" href="/icon-192.png">
+
+<meta property="og:title" content="Hooves &amp; Hounds — The Tracker">
+<meta property="og:description" content="Log your bets. See what you're actually making.">
+<meta property="og:image" content="https://tracker.hoovesnhounds.com/icon-512.png">
+<meta property="og:url" content="https://tracker.hoovesnhounds.com">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  html,body{margin:0;padding:0;background:#000;}
+  body{-webkit-tap-highlight-color:transparent;}
+  #root{min-height:100vh;}
+  /* holding screen while the script loads */
+  .boot{display:flex;align-items:center;justify-content:center;min-height:100vh;
+    color:#8A8A93;font-family:system-ui,sans-serif;font-size:14px;}
+  footer{background:#000;border-top:1px solid #232329;padding:26px 18px 40px;
+    text-align:center;font-family:'Barlow',system-ui,sans-serif;}
+  footer p{margin:0 0 10px;color:#8A8A93;font-size:12.5px;line-height:1.6;}
+  footer a{color:#EFB94C;text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+  footer .age{display:inline-block;border:1px solid #6E5320;color:#EFB94C;
+    padding:2px 7px;font-weight:600;font-size:11px;margin-right:6px;}
+</style>
+</head>
+<body>
+
+<div id="root"><div class="boot">Loading the tracker…</div></div>
+
+<footer>
+  <p>
+    <span class="age">18+</span>
+    Please gamble responsibly. Help and support at
+    <a href="https://www.begambleaware.org" target="_blank" rel="noopener">BeGambleAware.org</a>
+    and <a href="https://www.gamcare.org.uk" target="_blank" rel="noopener">GamCare</a>.
+  </p>
+  <p>
+    Your bets are stored on your own device. Slip images are sent for reading and are not kept.
+    This tracker records results — it does not place bets or offer betting advice.
+  </p>
+  <p><a href="https://hoovesnhounds.com">Hooves &amp; Hounds</a> — free horse racing tips</p>
+</footer>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="/app.js" defer></script>
+</body>
+</html>
