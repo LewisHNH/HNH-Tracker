@@ -52,8 +52,23 @@ export default async (request) => {
 
   const prompt = `Read this betting slip or bet history screenshot. Return ONLY a JSON array — no prose, no markdown fences.
 One object per bet:
-{"date":"YYYY-MM-DD","selection":"","track":"","sport":"horse"|"greyhound","type":"single"|"ew"|"multi","odds":"fraction or decimal","stake":"number","ewTerms":"1/5","result":"pending"|"won"|"placed"|"lost"|"void","legs":[{"selection":"","odds":"","result":"pending"}]}
-Rules: stake is the unit stake — for each-way give the single-side stake, not the doubled total. Only include "legs" for multiples. Use "" for anything not visible, and today (${today}) if no date shows. Only mark "greyhound" when the track or context clearly indicates dogs. Never invent a result you cannot see — use "pending". Return [] if there are no bets.`;
+{"date":"YYYY-MM-DD","selection":"","track":"","sport":"horse"|"greyhound","type":"single"|"ew"|"multi","odds":"fraction or decimal","stake":"number","slipTotalStake":"number","ewTerms":"1/5","result":"pending"|"won"|"placed"|"lost"|"void","legs":[{"selection":"","odds":"","result":"pending"}]}
+
+"slipTotalStake" is the total stake printed on the slip, exactly as shown (£30.00 -> 30). This lets us check the arithmetic, so copy it faithfully.
+BET TYPE — read this carefully, it is the most common mistake:
+Phrases like "Win or Each Way", "Win and Each-way", "Win/EW" describe the market the bookmaker OFFERED. They do NOT mean an each-way bet was placed. Default to "single".
+Only use "ew" when the slip shows the bet was actually placed each-way, for example:
+  - the bet type line reads "Each Way" / "E/W" on its own, without "Win or"
+  - the stake is written as two parts, e.g. "£15 E/W" alongside a £30 total, or "2 x £15"
+  - the return is broken into separate win and place parts
+If in doubt, use "single". A wrongly marked each-way bet doubles the recorded stake and corrupts the figures.
+
+STAKE — give the single-side stake as a plain number. For a genuine each-way bet where the slip shows a £30 total made of £15 win and £15 place, the stake is 15. For everything else it is the stake exactly as printed.
+
+RESULT — read only what is shown. A slip marked Lost with £0.00 returned is "lost". A slip marked Won, or showing a positive return, is "won". If nothing indicates the outcome, use "pending" — never guess.
+
+OTHER: Only include "legs" for multiples. Use "" for anything not visible, and today (${today}) if no date shows. Mark "greyhound" when the context indicates dogs — trap numbers ("Trap 4"), or greyhound tracks such as Monmore, Romford, Nottingham, Crayford, Hove, Sheffield, Newcastle, Sunderland, Perry Barr, Towcester, Central Park, Doncaster, Harlow, Kinsley, Pelaw Grange, Swindon, Yarmouth. Otherwise use "horse".
+Return [] if there are no bets.`;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -93,6 +108,30 @@ Rules: stake is the unit stake — for each-way give the single-side stake, not 
       return json(422, { error: "Could not read the slip." });
     }
     if (!Array.isArray(bets)) bets = [];
+
+    /* Guard against the classic misread: "Win or Each Way" is the market on
+       offer, not the bet placed. An each-way bet stakes twice, so if doubling
+       the stake doesn't match the total printed on the slip, it wasn't one. */
+    bets = bets.map((b) => {
+      const stake = parseFloat(b.stake);
+      const total = parseFloat(b.slipTotalStake);
+      if (b.type === "ew" && isFinite(stake) && isFinite(total) && total > 0) {
+        const doubled = Math.abs(stake * 2 - total) < 0.01;
+        const singled = Math.abs(stake - total) < 0.01;
+        if (singled && !doubled) {
+          b.type = "single";           // total matches a single stake
+        } else if (!doubled && !singled) {
+          b.type = "single";           // can't reconcile — the safer reading
+        }
+      }
+      // A genuine each-way slip listing only the combined total: halve it.
+      if (b.type === "ew" && isFinite(stake) && isFinite(total)
+          && Math.abs(stake - total) < 0.01 && total > 0) {
+        b.stake = total / 2;
+      }
+      delete b.slipTotalStake;
+      return b;
+    });
 
     return json(200, { bets });
   } catch (err) {
